@@ -1560,6 +1560,7 @@ void cWorld::GrowTreeImage(const sSetBlockVector & a_Blocks)
 
 bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsByBonemeal)
 {
+	MTRand rand;
 	BLOCKTYPE BlockType;
 	NIBBLETYPE BlockMeta;
 	GetBlockTypeMeta(a_BlockX, a_BlockY, a_BlockZ, BlockType, BlockMeta);
@@ -1571,12 +1572,7 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 			{
 				return false;
 			}
-			if (BlockMeta < 7)
-			{
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, 7);
-				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
-			}
-			return true;
+			break;
 		}
 
 		case E_BLOCK_COCOA_POD:
@@ -1587,7 +1583,7 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 			if (GrowState < 2)
 			{
 				GrowState++;
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, (NIBBLETYPE) (GrowState << 2 | TypeMeta));
+				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, (NIBBLETYPE)(GrowState << 2 | TypeMeta));
 				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
 			}
 			return true;
@@ -1599,14 +1595,9 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 			{
 				return false;
 			}
-			if (BlockMeta < 7)
-			{
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, 7);
-				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
-			}
-			return true;
+			break;
 		}
-		
+
 		case E_BLOCK_MELON_STEM:
 		{
 			if (BlockMeta < 7)
@@ -1615,8 +1606,6 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 				{
 					return false;
 				}
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, 7);
-				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
 			}
 			else
 			{
@@ -1624,25 +1613,22 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 				{
 					return false;
 				}
+
 				GrowMelonPumpkin(a_BlockX, a_BlockY, a_BlockZ, BlockType);
+				return true;
 			}
-			return true;
+			break;
 		}
-		
+
 		case E_BLOCK_POTATOES:
 		{
 			if (a_IsByBonemeal && !m_IsPotatoesBonemealable)
 			{
 				return false;
 			}
-			if (BlockMeta < 7)
-			{
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, 7);
-				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
-			}
-			return true;
+			break;
 		}
-		
+
 		case E_BLOCK_PUMPKIN_STEM:
 		{
 			if (BlockMeta < 7)
@@ -1651,8 +1637,6 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 				{
 					return false;
 				}
-				FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, 7);
-				BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
 			}
 			else
 			{
@@ -1662,16 +1646,28 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 				}
 				GrowMelonPumpkin(a_BlockX, a_BlockY, a_BlockZ, BlockType);
 			}
-			return true;
+			break;
 		}
-		
+
 		case E_BLOCK_SAPLING:
 		{
 			if (a_IsByBonemeal && !m_IsSaplingBonemealable)
 			{
 				return false;
 			}
-			GrowTreeFromSapling(a_BlockX, a_BlockY, a_BlockZ, BlockMeta);
+
+			if (!a_IsByBonemeal || (rand.randInt(99) < 45)) // 45% Grow Chance with bonemeal
+			{
+				if (a_IsByBonemeal && ((BlockMeta & 8) == 0))
+				{
+					// Grow into next stage, indicated by the fourth-Bit(0b1000 = 8)
+					FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, BlockMeta | 8);
+				}
+				else
+				{
+					GrowTreeFromSapling(a_BlockX, a_BlockY, a_BlockZ, BlockMeta);
+				}
+			}
 			return true;
 		}
 		
@@ -1681,12 +1677,11 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 			{
 				return false;
 			}
-			MTRand r1;
 			for (int i = 0; i < 60; i++)
 			{
-				int OfsX = static_cast<int>(r1.randInt(3) + r1.randInt(3) + r1.randInt(3) + r1.randInt(3)) / 2 - 3;
-				int OfsY = static_cast<int>(r1.randInt(3) + r1.randInt(3)) - 3;
-				int OfsZ = static_cast<int>(r1.randInt(3) + r1.randInt(3) + r1.randInt(3) + r1.randInt(3)) / 2 - 3;
+				int OfsX = static_cast<int>(rand.randInt(3) + rand.randInt(3) + rand.randInt(3) + rand.randInt(3)) / 2 - 3;
+				int OfsY = static_cast<int>(rand.randInt(3) + rand.randInt(3)) - 3;
+				int OfsZ = static_cast<int>(rand.randInt(3) + rand.randInt(3) + rand.randInt(3) + rand.randInt(3)) / 2 - 3;
 				BLOCKTYPE Ground = GetBlock(a_BlockX + OfsX, a_BlockY + OfsY, a_BlockZ + OfsZ);
 				if (Ground != E_BLOCK_GRASS)
 				{
@@ -1699,7 +1694,7 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 				}
 				BLOCKTYPE  SpawnType;
 				NIBBLETYPE SpawnMeta = 0;
-				switch (r1.randInt(10))
+				switch (rand.randInt(10))
 				{
 					case 0:  SpawnType = E_BLOCK_YELLOW_FLOWER; break;
 					case 1:  SpawnType = E_BLOCK_RED_ROSE;      break;
@@ -1735,8 +1730,27 @@ bool cWorld::GrowRipePlant(int a_BlockX, int a_BlockY, int a_BlockZ, bool a_IsBy
 			m_ChunkMap->GrowCactus(a_BlockX, a_BlockY, a_BlockZ, m_MaxCactusHeight);
 			return true;
 		}
+
+		default:
+		{
+			return false;
+		}
 	}  // switch (BlockType)
-	return false;
+	
+	if (BlockMeta < 7)
+	{
+		int NewMeta = 7;
+		if (a_IsByBonemeal)
+		{
+			// Seeds, potatoes, carrots, beetroots, Melon and pumpkin seeds grow between 2-5 Stages with Bonemeal
+			NewMeta = std::min(BlockMeta + rand.randInt(3) + 2, 7);
+		}
+
+		FastSetBlock(a_BlockX, a_BlockY, a_BlockZ, BlockType, NewMeta);
+		BroadcastSoundParticleEffect(2005, a_BlockX, a_BlockY, a_BlockZ, 0);
+	}
+
+	return true;
 }
 
 
