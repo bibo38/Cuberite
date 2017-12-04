@@ -73,8 +73,13 @@ protected:
 	*/
 	void HandleDetectorRailPhysics(NIBBLETYPE a_RailMeta, std::chrono::milliseconds a_Dt);
 
-	/** Handles activator rails - placeholder for future implementation */
+	/** Handles activator rails
+		If the rail is powered, we call the OnActivated() method.
+	*/
 	void HandleActivatorRailPhysics(NIBBLETYPE a_RailMeta, std::chrono::milliseconds a_Dt);
+
+	/** Called, when the minecart rolls over a powered activator rail */
+	virtual void OnActivated();
 
 	/** Snaps a mincecart to a rail's axis, resetting its speed
 		For curved rails, it changes the cart's direction as well as snapping it to axis */
@@ -207,6 +212,20 @@ public:
 	CLASS_PROTODEF(cMinecartWithTNT)
 
 	cMinecartWithTNT(double a_X, double a_Y, double a_Z);
+
+	// cEntity override
+	virtual void Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk) override;
+
+	// cMinecart override
+	virtual void OnActivated() override;
+
+private:
+
+	const int NOT_FUSED  = -1;
+	const int FUSE_TICKS = 80;
+
+	int remainingTicks;
+
 } ;
 
 

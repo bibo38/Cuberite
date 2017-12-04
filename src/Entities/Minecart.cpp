@@ -171,7 +171,7 @@ void cMinecart::HandlePhysics(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 		switch (InsideType)
 		{
 			case E_BLOCK_RAIL: HandleRailPhysics(InsideMeta, a_Dt); break;
-			case E_BLOCK_ACTIVATOR_RAIL: break;
+			case E_BLOCK_ACTIVATOR_RAIL: HandleActivatorRailPhysics(InsideMeta, a_Dt); break;
 			case E_BLOCK_POWERED_RAIL: HandlePoweredRailPhysics(InsideMeta); break;
 			case E_BLOCK_DETECTOR_RAIL:
 			{
@@ -582,7 +582,21 @@ void cMinecart::HandleDetectorRailPhysics(NIBBLETYPE a_RailMeta, std::chrono::mi
 
 void cMinecart::HandleActivatorRailPhysics(NIBBLETYPE a_RailMeta, std::chrono::milliseconds a_Dt)
 {
+	if (a_RailMeta & 0x08)
+	{
+		OnActivated();
+	}
+
+	// No special handling
 	HandleRailPhysics(a_RailMeta & 0x07, a_Dt);
+}
+
+
+
+
+
+void cMinecart::OnActivated()
+{
 }
 
 
@@ -1347,11 +1361,48 @@ void cMinecartWithFurnace::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk
 // cMinecartWithTNT:
 
 cMinecartWithTNT::cMinecartWithTNT(double a_X, double a_Y, double a_Z) :
-	super(mpTNT, a_X, a_Y, a_Z)
+	super(mpTNT, a_X, a_Y, a_Z),
+	remainingTicks(NOT_FUSED)
 {
 }
 
-// TODO: Make it activate when passing over activator rail
+
+
+
+
+void cMinecartWithTNT::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
+{
+	super::Tick(a_Dt, a_Chunk);
+
+	if (remainingTicks == NOT_FUSED)
+	{
+		return;
+	}
+
+	remainingTicks--;
+	if (remainingTicks == 0)
+	{
+		m_World->DoExplosionAt(4.0, GetPosX(), GetPosY(), GetPosZ(), true, esOther, nullptr);
+
+		Destroy();
+		remainingTicks = NOT_FUSED;
+	}
+}
+
+
+
+
+
+void cMinecartWithTNT::OnActivated()
+{
+	if (remainingTicks != NOT_FUSED)
+	{
+		return;
+	}
+
+	remainingTicks = FUSE_TICKS;
+	m_World->BroadcastSoundEffect("entity.tnt.primed", GetPosition(), 1, 1);
+}
 
 
 
