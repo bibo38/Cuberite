@@ -1,5 +1,7 @@
 # Cuberite
 
+YAY
+
 [![Build Status](https://img.shields.io/travis/cuberite/cuberite/master.svg?label=Travis)](https://travis-ci.org/cuberite/cuberite)
 [![Circle CI Build Status](https://img.shields.io/circleci/project/github/cuberite/cuberite/master.svg?label=Circle)](https://circleci.com/gh/cuberite/cuberite)
 [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/cuberite/cuberite/master.svg?label=AppVeyor)](https://ci.appveyor.com/project/cuberite/cuberite)
